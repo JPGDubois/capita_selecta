@@ -83,18 +83,40 @@ RUN rosdep update
 FROM dev as simulation
 
 # Install gazebo and corresponding ros packages.
-RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
-    && sudo apt-get update \
+# RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+#     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
+#     && sudo apt-get update \
+#     && sudo apt-get install -y --no-install-recommends \
+#     gz-fortress \
+#     ros-${ROS_DISTRO}-ign-ros2-control \
+#     ros-${ROS_DISTRO}-ros-gz \
+#     ros-${ROS_DISTRO}-ros-ign-bridge \
+#     ros-${ROS_DISTRO}-ros-ign-gazebo \
+    # ros-${ROS_DISTRO}-xacro
+    # # apt clean-up
+    # && sudo apt-get autoremove -y \
+    # && sudo rm -rf /var/lib/apt/lists/*
+
+# Install gazebo garden and corresponding packages.
+RUN sudo apt-get update \
     && sudo apt-get install -y --no-install-recommends \
-    gz-fortress \
-    ros-${ROS_DISTRO}-ign-ros2-control \
-    ros-${ROS_DISTRO}-ros-gz \
-    ros-${ROS_DISTRO}-ros-ign-bridge \
-    ros-${ROS_DISTRO}-ros-ign-gazebo \
+    ros-${ROS_DISTRO}-gazebo-ros-pkgs \
+    ros-${ROS_DISTRO}-xacro \
+    ros-${ROS_DISTRO}-ros2-control \
+    ros-${ROS_DISTRO}-ros2-controllers \
+    ros-${ROS_DISTRO}-gazebo-ros2-control \
+    ros-${ROS_DISTRO}-tf-transformations \
     # apt clean-up
     && sudo apt-get autoremove -y \
     && sudo rm -rf /var/lib/apt/lists/*
+
+RUN sudo pip3 install --no-cache transforms3d
+
+
+
+
+
+
 
 # Setup entrypoint
 ENTRYPOINT ["/ros_entrypoint.sh"]
