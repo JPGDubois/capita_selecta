@@ -10,28 +10,14 @@ Clone the git repositry and open it in vscode, a prompt will appear asking to op
 
 
 ## Pathfollowing
-This contains a node that performs simple waypoint following missions while avoiding obstacles. The algorithm is not robust and the waypoints may not be accurate to the simulated world due to error buildup in odometry. 
-
-To use it open the gazebo file using:
-```
-ign gazebo gazebo_files/worlds/pathfollowing.sdf
-```
-
-In a new window open the node:
-```
-colcon build --packages-select pathfollowing --merge-install --symlink-install
-```
-
-```
-source install/setup.bash
-ros2 launch pathfollowing launch_pathfinding.launch.py
-```
-
-Then in a third window, a waypoint can be set using the following command:
-```
-ros2 topic pub --once waypoint geometry_msgs/msg/Pose "{position: {x: 10, y: 0.0, z: 0.0}}"
-```
-
+The simulation can be started using:
+ros2 launch my_bot launch_sim.launch.py
+ 
+The action server using:
+ros2 launch navigate test_params.launch.py
+ 
+Then the action client can be ran using:
+ros2 run navigate nav_pose_client
 
 
 # capita_selecta
