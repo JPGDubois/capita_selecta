@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(interface_msgs)
+project(navigate_msgs)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -13,7 +13,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 set(action_files
-  "action/NavWaypoint.action"
+  "action/NavPose.action"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

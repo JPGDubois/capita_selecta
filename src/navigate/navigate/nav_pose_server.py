@@ -1,54 +1,59 @@
-import time
 import numpy as np
 
 import rclpy
-
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.qos import QoSProfile
-from rclpy.duration import Duration
-
 from rclpy.executors import MultiThreadedExecutor
-
 from rclpy.node import Node
 
-from std_msgs.msg import Float32
-from geometry_msgs.msg import Twist, PoseStamped, Vector3
-from interface_msgs.action import NavWaypoint
+from geometry_msgs.msg import TwistStamped
+from navigate_msgs.action import NavPose
 from nav_msgs.msg import Odometry
 
-class NavWaypointServer(Node):
+class NavPoseServer(Node):
 
     def __init__(self):
-        super().__init__("nav_waypoint")
+        super().__init__("nav_pose_server")
 
         # Initialise controller parameters.
-        self.max_vel_x = 1.0
-        self.min_vel_x = -1.0
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('rotate_dist_threshold', 0.1),
+                ('yaw_tolerance', 20.0),
+                ('position_tolerance', 0.3),
+                ('timeout', 60.0),
+                ('proportional_gain_x', 1.0),
+                ('proportional_gain_yaw', 1.0),
+                ('max_vel_x', 1.0),
+                ('min_vel_x', 1.0)
+            ]
+        )
 
-        self.rotate_dist_threshold = 0.1    # metres
-
-        self.yaw_tolerance = 20.0 # degrees
-        self.position_tolerance = 0.3 # metres
-        self.timeout = 60   # seconds
-
-        self.proportional_gain_x = 1.0
-        self.proportional_gain_yaw = 1.0
+        self.rotate_dist_threshold = self.get_parameter('rotate_dist_threshold').value
+        self.yaw_tolerance = self.get_parameter('yaw_tolerance').value
+        self.position_tolerance = self.get_parameter('position_tolerance').value
+        self.timeout = self.get_parameter('timeout').value
+        self.proportional_gain_x = self.get_parameter('proportional_gain_x').value
+        self.proportional_gain_yaw = self.get_parameter('proportional_gain_yaw').value
+        self.max_vel_x = self.get_parameter('max_vel_x').value
+        self.min_vel_x = self.get_parameter('min_vel_x').value
 
         # Define quality of service
         qos = QoSProfile(depth=10)
 
         # Subscribers
-        self.odometry_sub = self.create_subscription(Odometry, '/ground_truth/odom', self.odom_callback, 10)
+        self.odometry_sub = self.create_subscription(Odometry, '/input/odom', self.odom_callback, 10)
 
         # Publishers
-        self.command_pub = self.create_publisher(Twist, '/diff_cont/cmd_vel_unstamped', 10)
+        self.command_pub = self.create_publisher(TwistStamped, '/output/cmd_vel', 10)
 
         # Initialise action server
         self._action_server = ActionServer(
             self,
-            NavWaypoint,
-            "nav_waypoint",
+            NavPose,
+            'nav_pose',
             execute_callback=self.execute_callback,
             callback_group=ReentrantCallbackGroup(),
             goal_callback=self.goal_callback,
@@ -57,10 +62,10 @@ class NavWaypointServer(Node):
 
         # Initialise vehicle variables
         self.pose = None
-        self.goal = NavWaypoint.Goal()
+        self.goal = NavPose.Goal()
 
-        self.get_logger().info("NavWaypoint action has been initialised.")
-    
+        self.get_logger().info("NavPose action has been initialised.")
+  
     def destroy(self):
         self._action_server.destroy()
         super().destroy_node()
@@ -105,41 +110,38 @@ class NavWaypointServer(Node):
         self.get_logger().info("Executing goal...")
         loop_rate = self.create_rate(10, self.get_clock())
 
-        # Initialifse result message
-        result_msg = NavWaypoint.Result()
+        # Initialise result message
+        result_msg = NavPose.Result()
 
         # Initialise feedback message
-        feedback_msg = NavWaypoint.Feedback()
+        feedback_msg = NavPose.Feedback()
         feedback_msg.pose.header.frame_id = "odom"
         feedback_msg.duration = 0.0
         feedback_msg.distance = np.inf
 
         # Initialise output command message
-        command_msg = Twist()
+        command_msg = TwistStamped()
 
         # Initialise action specific variables
         start_time = self.get_clock().now()
-        goal_position = np.array([self.goal.pose.position.x, self.goal.pose.position.y])
-        goal_yaw = self.euler_from_quaternion(self.goal.pose.orientation.x, self.goal.pose.orientation.y, self.goal.pose.orientation.z, self.goal.pose.orientation.w)[2]
+        goal_position = np.array([self.goal.pose.pose.position.x, self.goal.pose.pose.position.y])
+        goal_yaw = self.euler_from_quaternion(self.goal.pose.pose.orientation.x, self.goal.pose.pose.orientation.y, self.goal.pose.pose.orientation.z, self.goal.pose.pose.orientation.w)[2]
 
         while True:
 
             # If action canceled
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
-                result_msg.success = NavWaypoint.Result.CANCEL
+                result_msg.success = NavPose.Result.CANCEL
                 self.get_logger().info("Goal canceled")
                 return result_msg
             
             # If action timeout
             if feedback_msg.duration > self.timeout:
                 goal_handle.abort()
-                result_msg.success = NavWaypoint.Result.TIMEOUT
+                result_msg.success = NavPose.Result.TIMEOUT
                 self.get_logger().info("Timeout reached")
                 return result_msg
-
-            # Get current time
-            current_time = self.get_clock().now()
 
             # Get current position and heading from odometry data
             position = np.array([self.pose.position.x, self.pose.position.y])
@@ -154,11 +156,11 @@ class NavWaypointServer(Node):
             delta_body = np.array([[np.cos(yaw), np.sin(yaw)],[-np.sin(yaw), np.cos(yaw)]])@delta
 
             # Calcualte lateral velocity using p controller
+
             vel_x = self.proportional_gain_x * delta_body[0]
             vel_x = max(min(vel_x, self.max_vel_x), self.min_vel_x)
 
             delta_yaw = np.arctan2(delta_body[1], delta_body[0])
-
 
             if dist < self.rotate_dist_threshold:
                 delta_yaw = goal_yaw - yaw
@@ -169,9 +171,13 @@ class NavWaypointServer(Node):
 
             vel_yaw = self.proportional_gain_yaw * delta_yaw
 
+            # Get current time
+            current_time = self.get_clock().now()
+
             # Publish commands
-            command_msg.linear.x = -vel_x
-            command_msg.angular.z = vel_yaw
+            command_msg.header.stamp = current_time.to_msg()
+            command_msg.twist.linear.x = -vel_x
+            command_msg.twist.angular.z = vel_yaw
             self.command_pub.publish(command_msg)
 
             # Publish feedback
@@ -189,10 +195,13 @@ class NavWaypointServer(Node):
             loop_rate.sleep()
 
         # Stop robot once goal reached
-        self.command_pub.publish(Twist())
+        command_msg.header.stamp = self.get_clock().now().to_msg()
+        command_msg.twist.linear.x = 0.0
+        command_msg.twist.angular.z = 0.0
+        self.command_pub.publish(command_msg)
 
         goal_handle.succeed()
-        result_msg.success = NavWaypoint.Result.SUCCESS
+        result_msg.success = NavPose.Result.SUCCESS
 
         self.get_logger().info(f"Returning result: {result_msg}")
         return result_msg
@@ -202,13 +211,13 @@ class NavWaypointServer(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    nav_waypoint_action_server = NavWaypointServer()
+    nav_pose_action_server = NavPoseServer()
 
     executor = MultiThreadedExecutor()
 
-    rclpy.spin(nav_waypoint_action_server, executor=executor)
+    rclpy.spin(nav_pose_action_server, executor=executor)
 
-    nav_waypoint_action_server.destroy()
+    nav_pose_action_server.destroy()
     rclpy.shutdown()
 
 if __name__ == "__main__":

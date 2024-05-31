@@ -58,7 +58,7 @@
                 "redhat.vscode-xml",
                 "tamasfe.even-better-toml",
                 "timonwong.shellcheck",
-                "yzhang.markdown-all-in-one",
+                "yzhang.markdown-all-in-one"
             ],
             // Set *default* container specific settings.json values on container create.
             "settings": {
