@@ -7,32 +7,33 @@
     </hardware>
     <joint name="left_rear_wheel_joint">
         <command_interface name="velocity">
-            <param name="min">-10</param>
-            <param name="max">10</param>
+            <param name="min">-${wheel_max_velocity}</param>
+            <param name="max">${wheel_max_velocity}</param>
         </command_interface>
         <state_interface name="position" />
         <state_interface name="velocity" />
     </joint>
     <joint name="right_rear_wheel_joint">
         <command_interface name="velocity">
-            <param name="min">-10</param>
-            <param name="max">10</param>
+            <param name="min">-${wheel_max_velocity}</param>
+            <param name="max">${wheel_max_velocity}</param>
         </command_interface>
         <state_interface name="position" />
         <state_interface name="velocity" />
     </joint>
+
     <joint name="left_front_wheel_joint">
         <command_interface name="velocity">
-            <param name="min">-10</param>
-            <param name="max">10</param>
+            <param name="min">-${wheel_max_velocity}</param>
+            <param name="max">${wheel_max_velocity}</param>
         </command_interface>
         <state_interface name="position" />
         <state_interface name="velocity" />
     </joint>
     <joint name="right_front_wheel_joint">
         <command_interface name="velocity">
-            <param name="min">-10</param>
-            <param name="max">10</param>
+            <param name="min">-${wheel_max_velocity}</param>
+            <param name="max">${wheel_max_velocity}</param>
         </command_interface>
         <state_interface name="position" />
         <state_interface name="velocity" />
@@ -41,8 +42,8 @@
 
 <gazebo>
     <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
-        <parameters>$(find robot)/config/controllers.yaml </parameters>
-        <robotNamespace>/robot</robotNamespace>
+        <parameters>$(find rover)/config/controllers.yaml </parameters>
+        <robotNamespace>/rover</robotNamespace>
     </plugin>
 
     <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">

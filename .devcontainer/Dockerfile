@@ -97,26 +97,25 @@ FROM dev as simulation
     # && sudo apt-get autoremove -y \
     # && sudo rm -rf /var/lib/apt/lists/*
 
-# Install gazebo garden and corresponding packages.
+# Install gazebo fortress and corresponding packages.
 RUN sudo apt-get update \
     && sudo apt-get install -y --no-install-recommends \
-    ros-${ROS_DISTRO}-gazebo-ros-pkgs \
+    ros-${ROS_DISTRO}-ros-gz \
     ros-${ROS_DISTRO}-xacro \
+    ros-${ROS_DISTRO}-ign-ros2-control \
+
     ros-${ROS_DISTRO}-ros2-control \
     ros-${ROS_DISTRO}-ros2-controllers \
-    ros-${ROS_DISTRO}-gazebo-ros2-control \
-    ros-${ROS_DISTRO}-tf-transformations \
     # apt clean-up
     && sudo apt-get autoremove -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
 RUN sudo pip3 install --no-cache transforms3d
 
+# Automatically source ros2
+RUN echo 'source /opt/ros/humble/setup.bash' >> ~/.bashrc
 
-
-
-
-
+RUN echo 'if [ -f ~/ros2_ws/install/setup.bash ]; then\n source ~/ros2_ws/install/setup.bash\n fi' >> ~/.bashrc
 
 # Setup entrypoint
 ENTRYPOINT ["/ros_entrypoint.sh"]

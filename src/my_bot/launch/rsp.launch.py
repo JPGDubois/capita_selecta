@@ -9,7 +9,6 @@ from launch_ros.actions import Node
 
 import xacro
 
-
 def generate_launch_description():
 
     # Check if we're told to use sim time
@@ -27,9 +26,6 @@ def generate_launch_description():
         executable='robot_state_publisher',
         output='screen',
         parameters=[params],
-        remappings=[
-            ('/gazebo/spawn_entity', '/spawn_entity')
-        ]
     )
 
     # Launch!
@@ -37,7 +33,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='true',
-            description='Use sim time if true'),
-
-        node_robot_state_publisher
-            ])
+            description='Use sim time if true'
+        ),
+        node_robot_state_publisher,
+    ])

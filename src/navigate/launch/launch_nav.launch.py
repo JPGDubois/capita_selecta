@@ -17,7 +17,7 @@ def generate_launch_description():
         parameters = [config],
         remappings=[
             ('/input/odom', '/ground_truth/odom'),
-            ('/output/cmd_vel', '/diff_cont/cmd_vel')
+            ('/output/reference', '/nav/goal_pose')
         ]
     )
 
@@ -25,13 +25,25 @@ def generate_launch_description():
         package = 'navigate',
         name = 'nav_pose_client',
         executable = 'nav_pose_client',
-        # remappings=[
-        #     ('/input/goal_pose', '/move_base_simple/goal')
-        # ]
+        remappings=[
+            ('/input/goal_pose', '/goal_pose')
+        ]
+    )
+
+    nav_controller=Node(
+        package = 'navigate',
+        name = 'nav_controller',
+        executable = 'nav_controller',
+        remappings=[
+            ('/input/pose', '/nav/goal_pose'),
+            ('/input/odom', '/ground_truth/odom'),
+            ('/output/cmd_vel', '/diff_cont/cmd_vel')
+        ]
     )
 
     
     return LaunchDescription([
         nav_pose_server,
-        #nav_pose_client
+        nav_pose_client,
+        nav_controller
     ])

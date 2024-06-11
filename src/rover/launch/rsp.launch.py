@@ -12,7 +12,7 @@ import xacro
 
 def generate_launch_description():
 
-    package_name='robot' #<--- CHANGE ME
+    package_name='rover' #<--- CHANGE ME
 
     # Check if we're told to use sim time
     use_sim_time = LaunchConfiguration('use_sim_time')

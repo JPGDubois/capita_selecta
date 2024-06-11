@@ -1,0 +1,12 @@
+digraph G {
+"base_link" -> "left_wheel"[label=" Broadcaster: default_authority\nAverage rate: 199.689\nBuffer length: 3.22\nMost recent transform: 166.58\nOldest transform: 163.36\n"];
+"my_bot" -> "base_link"[label=" Broadcaster: default_authority\nAverage rate: 188.806\nBuffer length: 2.966\nMost recent transform: 166.556\nOldest transform: 163.59\n"];
+"base_link" -> "right_wheel"[label=" Broadcaster: default_authority\nAverage rate: 190.062\nBuffer length: 3.22\nMost recent transform: 166.58\nOldest transform: 163.36\n"];
+"chassis" -> "caster_wheel"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "chassis"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"empty_world" -> "my_bot"[label=" Broadcaster: default_authority\nAverage rate: 206.196\nBuffer length: 2.066\nMost recent transform: 166.556\nOldest transform: 164.49\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1718092462.434659"[ shape=plaintext ] ;
+}->"empty_world";
+}
